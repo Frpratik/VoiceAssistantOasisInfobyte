@@ -19,7 +19,6 @@ def speak(text):
     engine.stop()
 
 def listen(retries=5):
-    """Listen for a voice command with multiple retry attempts."""
     recognizer = sr.Recognizer()
     with sr.Microphone() as source:
         print("Listening...")
@@ -45,32 +44,69 @@ def listen(retries=5):
 def handle_command(command):
     """Handle the recognized voice command and respond accordingly."""
     command = command.lower()
+
+    # Dictionary with keyword variations mapped to responses
     responses = {
-        'hello': "Hello! How can I assist you?",
-        'your name': "I'm your voice assistant.",
-        'time': f"The time is {datetime.now().strftime('%H:%M')}.",
-        'date': f"Today's date is {datetime.now().strftime('%Y-%m-%d')}.",
-        'weather': "I'm unable to check the weather right now. Please check a weather app.",
-        'purpose': "I'm here to assist you with your queries and tasks.",
-        'joke': "Why did the scarecrow win an award? Because he was outstanding in his field!",
-        'projects': "You've worked on various projects, including a Personal Finance Management System and an Online Event Management System.",
-        'experience': "You have 1 year of professional experience primarily in Python and Django, and you are currently working as a software developer at Mobitrail Private Limited.",
-        'background': "You have a Bachelor in Computer Applications from Pune University and have completed a Master's course in Full Stack Development.",
-        'interest': "You love coding, learning new technologies, and exploring new skills.",
-        'goal': "You aim to pursue a Master's in Computer Science and are particularly interested in projects that integrate computer science with real-world applications.",
-        'exit': "Goodbye!"  # This will signal the conversation to stop
+        'hello': ["hello", "hi", "hey", "greetings", "what's up", "howdy"],
+        'how are you': ["how are you", "how's it going", "how do you feel", "what's up with you"],
+        'time': ["time", "current time", "what's the time", "can you tell me the time", "what time is it"],
+        'date': ["date", "today's date", "what's the date", "what day is it", "what is today's date"],
+        'weather': ["weather", "check weather", "what's the weather", "tell me the weather", "how's the weather", "is it raining"],
+        'joke': ["joke", "make me laugh", "something funny", "tell me a joke", "say something funny", "crack a joke"],
+        'projects': ["projects", "my work", "tell me about my projects", "what have i worked on", "show me my projects"],
+        'experience': ["experience", "work experience", "what is my experience", "tell me about my job", "what is my professional background"],
+        'background': ["background", "education", "tell me about my background", "what have i studied", "what's my academic history"],
+        'goal': ["goal", "future plans", "what are my goals", "what do i want to achieve", "what is my ambition"],
+        'exit': ["exit", "bye", "goodbye", "see you later", "i'm done", "that's it", "quit"],
+        'thank you': ["thanks","thank", "thank you", "i appreciate it", "thanks a lot", "many thanks", "much appreciated"],
+        'name': ["what's your name", "who are you", "what do i call you", "your name"],
+        'help': ["help", "i need help", "assist me", "can you help me", "what can you do"],
+        'purpose': ["what is your purpose", "why are you here", "what's your role", "what do you do", "what's your job"],
+        'age': ["how old are you", "what's your age", "tell me your age", "how long have you existed"],
+        'thank you': ["thanks", "thank you", "appreciate it", "thankful", "many thanks"],
+        'favorite color': ["what's your favorite color", "what color do you like", "your favorite color"],
+        'where from': ["where are you from", "where do you come from", "your origin", "where are you based"],
+        'what can you do': ["what can you do", "what are your abilities", "how can you help me", "what's your skill set"],
     }
-    for key in responses.keys():
-        if key in command:
-            response_text = responses[key]
+
+    # Responses mapped to the main intent
+    response_texts = {
+        'hello': "Hey there! How can I help you today?",
+        'how are you': "I'm just a program, but I'm doing great! How about you?",
+        'time': f"The current time is {datetime.now().strftime('%H:%M')}.",
+        'date': f"Today's date is {datetime.now().strftime('%Y-%m-%d')}.",
+        'weather': "I can't check the weather at the moment. Try a weather app for live updates!",
+        'joke': "Why don't skeletons fight each other? Because they don’t have the guts!",
+        'projects': "You’ve worked on great projects like a Personal Finance Management System and an Online Event Management System.",
+        'experience': "You have experience in Python, Django, and you're currently working at Mobitrail Private Limited as a software developer.",
+        'background': "You hold a Bachelor's in Computer Applications, with additional full stack development certifications.",
+        'goal': "You aim to pursue a Master's in Computer Science and work on real-world projects.",
+        'exit': "Goodbye! Let me know if you need any further assistance.",
+        'thank you': "You're very welcome! I'm always here to help.",
+        'name': "I'm your voice assistant, ready to help with your tasks and queries!",
+        'help': "I can assist you with checking the time, answering questions about your experience, or even telling a joke!",
+        'purpose': "I'm here to assist you with tasks, answer questions, and make your life easier.",
+        'age': "I don't have an age, but I was created recently to help you!",
+        'favorite color': "I don't have preferences, but blue seems like a calming choice!",
+        'where from': "I exist in the cloud, always ready to assist you.",
+        'what can you do': "I can help you with queries, check the time, tell jokes, talk about your work or goals, and much more!",
+    }
+
+    for key, variations in responses.items():
+        if any(variation in command for variation in variations):
+            response_text = response_texts[key]
+
             if key == 'exit':
-                speak(response_text)  # Speak the response
+                speak(response_text)
                 exit(0)
-            print(f"Response: {response_text}")  # Print the response for debugging
-            speak(response_text)  # Speak the response
+
+            print(f"Response: {response_text}")
+            speak(response_text)
             return response_text
+
     speak("I'm not sure how to help with that.")
     return "I'm not sure how to help with that."
+
 
 # Example of running the assistant
 if __name__ == "__main__":

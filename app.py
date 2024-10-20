@@ -12,7 +12,7 @@ def home():
 def voice_command():
     command = listen()
     if command is None:
-        return jsonify({"error": "Listening error"}), 500
+        return jsonify({"error": "Unable to listen.Please try again!"}), 500
     response = handle_command(command)  # Process the command
     if response == "Goodbye!":  # Exit command
         return jsonify({"command": command, "response": response, "exit": True})
