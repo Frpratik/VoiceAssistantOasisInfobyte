@@ -23,13 +23,30 @@ function startConversation() {
         } else {
             responseElement.innerText = "Assistant: " + data.response;
             failCount = 0;  // Reset fail count if successful
-            setTimeout(startConversation, 1000);  // Continue the conversation after 1 second
+            
+            if (data.exit) {  // If the assistant responds with 'Goodbye'
+                responseElement.innerText += " (Goodbye!)";
+                stopConversation();  // Call the function to stop the interaction
+            } else {
+                setTimeout(startConversation, 1000);  // Continue the conversation after 1 second
+            }
         }
     })
     .catch(error => {
         responseElement.innerText = "An error occurred.";
         console.error('Error:', error);
     });
+}
+
+function stopConversation() {
+    // Hide juggling balls animation
+    const jugglingBalls = document.getElementById('juggling-balls');
+    jugglingBalls.querySelectorAll('.ball').forEach(ball => {
+        ball.style.animation = '';  // Remove animation
+    });
+
+    // Show the start button again
+    document.getElementById('start-btn').classList.remove('hidden');
 }
 
 document.getElementById('start-btn').addEventListener('click', function() {

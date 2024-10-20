@@ -3,9 +3,32 @@ from datetime import datetime
 import time
 import speech_recognition as sr
 from flask import Flask, request, jsonify
+import requests
 
 app = Flask(__name__)
 
+API_KEY = "816ef82169eafd7d91e40b372684f15a"
+BASE_URL = 'http://api.openweathermap.org/data/2.5/weather?'
+city = "Mumbai"
+
+def get_weather(city):
+    url = f"{BASE_URL}q={city}&appid={API_KEY}&units=metric"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        main = data['main']
+        wind = data['wind']
+        weather_desc = data['weather'][0]['description']
+        temperature = main['temp']
+        humidity = main['humidity']
+        wind_speed = wind['speed']
+        
+        weather_report = (f"Currently in {city}, the weather is {weather_desc} with a temperature of {temperature} degrees Celsius, "
+                          f"humidity at {humidity}%, and wind speed of {wind_speed} meters per second.")
+        return weather_report
+    else:
+        return "Sorry, I couldn't fetch the weather data. Please check the city name or try again later."
+    
 def speak(text):
     """Speak the given text using the text-to-speech engine."""
     print(f"Speaking: {text}")  # Debug print statement
@@ -75,7 +98,7 @@ def handle_command(command):
         'how are you': "I'm just a program, but I'm doing great! How about you?",
         'time': f"The current time is {datetime.now().strftime('%H:%M')}.",
         'date': f"Today's date is {datetime.now().strftime('%Y-%m-%d')}.",
-        'weather': "I can't check the weather at the moment. Try a weather app for live updates!",
+        'weather': get_weather(city),  # Fetches weather for the predefined city
         'joke': "Why don't skeletons fight each other? Because they don’t have the guts!",
         'projects': "You’ve worked on great projects like a Personal Finance Management System and an Online Event Management System.",
         'experience': "You have experience in Python, Django, and you're currently working at Mobitrail Private Limited as a software developer.",
@@ -95,11 +118,6 @@ def handle_command(command):
     for key, variations in responses.items():
         if any(variation in command for variation in variations):
             response_text = response_texts[key]
-
-            if key == 'exit':
-                speak(response_text)
-                exit(0)
-
             print(f"Response: {response_text}")
             speak(response_text)
             return response_text
