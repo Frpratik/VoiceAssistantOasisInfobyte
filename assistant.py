@@ -1,15 +1,17 @@
 import pyttsx3
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import speech_recognition as sr
 from flask import Flask, request, jsonify
 import requests
+import threading 
 
 app = Flask(__name__)
 
 API_KEY = "816ef82169eafd7d91e40b372684f15a"
 BASE_URL = 'http://api.openweathermap.org/data/2.5/weather?'
 city = "Mumbai"
+reminders = []  # List to store reminders
 
 def get_weather(city):
     url = f"{BASE_URL}q={city}&appid={API_KEY}&units=metric"
@@ -63,12 +65,49 @@ def listen(retries=5):
                 return None
         speak("I couldn't hear you clearly. Let's try again.")
         return None
+    
+def check_reminders():
+    """Check reminders and notify the user if any are due."""
+    """Set a reminder to drink water in 5 minutes.>>>>pattern for setting reminders"""
+    while True:
+        now = datetime.now()
+        due_reminders = [rem for rem in reminders if rem['time'] <= now]
+        
+        for reminder in due_reminders:
+            speak(f"Reminder: {reminder['message']}")
+            reminders.remove(reminder)  # Remove the reminder once it’s spoken
+        
+        time.sleep(60)  # Check every minute for due reminders
+
+# Start the background thread to check reminders
+reminder_thread = threading.Thread(target=check_reminders, daemon=True)
+reminder_thread.start()
 
 def handle_command(command):
-    """Handle the recognized voice command and respond accordingly."""
     command = command.lower()
 
-    # Dictionary with keyword variations mapped to responses
+    if "set a reminder" in command:
+        try:
+            reminder_message = command.split("reminder to ")[1].split(" in ")[0]
+            time_amount, time_unit = command.split(" in ")[1].split()[:2]
+            time_amount = int(time_amount)
+
+            if "minute" in time_unit:
+                reminder_time = datetime.now() + timedelta(minutes=time_amount)
+            elif "hour" in time_unit:
+                reminder_time = datetime.now() + timedelta(hours=time_amount)
+            else:
+                speak("I can only set reminders in minutes or hours for now.")
+                return "Failed to set reminder."
+            
+            # Add the reminder to the list
+            reminders.append({"message": reminder_message, "time": reminder_time})
+            speak(f"Reminder set to {reminder_message} in {time_amount} {time_unit}.")
+            return f"Reminder set: {reminder_message} in {time_amount} {time_unit}."
+        except Exception as e:
+            speak("Sorry, I couldn't understand the reminder details.")
+            return "Failed to set reminder."
+
     responses = {
         'hello': ["hello", "hi", "hey", "greetings", "what's up", "howdy"],
         'how are you': ["how are you", "how's it going", "how do you feel", "what's up with you"],
@@ -90,7 +129,7 @@ def handle_command(command):
         'favorite color': ["what's your favorite color", "what color do you like", "your favorite color"],
         'where from': ["where are you from", "where do you come from", "your origin", "where are you based"],
         'what can you do': ["what can you do", "what are your abilities", "how can you help me", "what's your skill set"],
-    }
+    } 
 
     # Responses mapped to the main intent
     response_texts = {

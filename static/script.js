@@ -25,7 +25,7 @@ function startConversation() {
             failCount = 0;  // Reset fail count if successful
             
             if (data.exit) {  // If the assistant responds with 'Goodbye'
-                responseElement.innerText += " (Goodbye!)";
+                responseElement.innerText += "";
                 stopConversation();  // Call the function to stop the interaction
             } else {
                 setTimeout(startConversation, 1000);  // Continue the conversation after 1 second
