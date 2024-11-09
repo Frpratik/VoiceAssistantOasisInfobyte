@@ -1,0 +1,7 @@
+1.firstly gio to credentials 
+2.create credentials
+3.oauth credentials
+4.create and then download 
+5.save in credentials.json file in vscode
+6.then there  are some login and all required after that you will be able to access google calender
+
