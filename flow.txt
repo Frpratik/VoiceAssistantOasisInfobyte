@@ -4,4 +4,12 @@
 4.create and then download 
 5.save in credentials.json file in vscode
 6.then there  are some login and all required after that you will be able to access google calender
-
+===================================================================================================================
+816ef82169eafd7d91e40b372684f15a ------------ weather api key
+===================================================================================================================
+to create password for smtp account
+go to the google account 
+turn on two factor authentication
+after that search app passwords and create pass word
+copy that and paste in your code > password = "xyzwhatever the password is"
+===================================================================================================================

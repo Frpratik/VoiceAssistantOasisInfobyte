@@ -8,10 +8,13 @@ import threading
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 app = Flask(__name__)
 
-API_KEY = "0fd53170c484a6c121a3e9352ec6d5f786f2e921"
+API_KEY = "816ef82169eafd7d91e40b372684f15a"   # weather api key
 BASE_URL = 'http://api.openweathermap.org/data/2.5/weather?'
 city = "Mumbai"
 reminders = []  # List to store reminders
@@ -33,6 +36,9 @@ def get_weather(city):
                 f"humidity at {humidity}%, and wind speed of {wind_speed} m/s.")
     else:
         return "Sorry, I couldn't fetch the weather data."
+    
+#================================================================================================================================
+#================================================================================================================================
 
 def speak(text):
     print(f"Speaking: {text}")  # Debug print statement
@@ -42,6 +48,9 @@ def speak(text):
     engine.say(text)
     engine.runAndWait()
     engine.stop()
+    
+#================================================================================================================================
+#================================================================================================================================
 
 def listen(retries=5):
     recognizer = sr.Recognizer()
@@ -58,6 +67,9 @@ def listen(retries=5):
                 speak("Sorry, I didn't understand that. Please try again.")
         return None
     
+#================================================================================================================================
+#================================================================================================================================
+
 def check_reminders():
     while True:
         now = datetime.now()
@@ -70,10 +82,16 @@ def check_reminders():
 reminder_thread = threading.Thread(target=check_reminders, daemon=True)
 reminder_thread.start()
 
+#===============================================================================================================================
+#================================================================================================================================
+
 def handle_command(command, service):
     if "calendar" in command:
         return tell_today_events(service)
 
+    """Check reminders and notify the user if any are due."""
+    """Set a reminder to drink water in 5 minutes.>>>>pattern for setting reminders""" 
+    
     if "set a reminder" in command:
         try:
             reminder_message = command.split("reminder to ")[1].split(" in ")[0]
@@ -94,7 +112,19 @@ def handle_command(command, service):
         except Exception:
             speak("Sorry, I couldn't understand the reminder details.")
             return "Failed to set reminder."
+        
+    if 'send email' in command:
+        # Prompt for recipient email, subject, and message
+        speak("Please tell me the recipient's email address.")
+        recipient_email = listen() 
+        speak("What is the subject of the email?")
+        subject = listen()
+        speak("What is the message?")
+        body = listen()
 
+        # Send the email
+        send_email(recipient_email, subject, body)
+        
     response_texts = {
         'hello': "Hey there! How can I help you today?",
         'how are you': "I'm just a program, but I'm doing great! How about you?",
@@ -117,6 +147,9 @@ def handle_command(command, service):
 
     speak("I'm not sure how to help with that.")
     return "I'm not sure how to help with that."
+
+#================================================================================================================================
+#================================================================================================================================
 
 def authenticate_google_calendar():
     creds = None
@@ -157,5 +190,38 @@ def tell_today_events(service):
     print(response_text)
     return response_text
 
-if __name__ == "__main__":
-    app.run(threaded=True, debug=False)
+#================================================================================================================================
+#================================================================================================================================
+
+# Email setup
+EMAIL_ADDRESS = "ghugepratik2619@gmail.com"  # Replace with your email
+EMAIL_PASSWORD = "ljfx bwcy fbga xxxu"  # app passwords> created app specific password
+def send_email(recipient_email, subject, body):
+    try:
+        # Setup the MIME
+        message = MIMEMultipart()
+        message['From'] = EMAIL_ADDRESS
+        message['To'] = recipient_email
+        message['Subject'] = subject
+
+        # Attach the body of the email to the MIME message
+        message.attach(MIMEText(body, 'plain'))
+
+        # Connect to Gmail's SMTP server
+        with smtplib.SMTP('smtp.gmail.com', 587) as server:
+            server.starttls()  # Enable security
+            server.login(EMAIL_ADDRESS, EMAIL_PASSWORD)  # Login to your email account
+            # print("Login successfull=================================")
+            text = message.as_string()  # Convert the MIME message to a string
+            server.sendmail(EMAIL_ADDRESS, recipient_email, text)  # Send the email
+
+        print("Email sent successfully!")
+        speak("Email sent successfully!")
+
+    except Exception as e:
+        print(f"Failed to send email: {e}")
+        speak("Failed to send the email. Please check the details and try again.")
+
+#================================================================================================================================
+#================================================================================================================================
+
