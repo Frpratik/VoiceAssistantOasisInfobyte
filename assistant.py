@@ -11,17 +11,25 @@ from googleapiclient.discovery import build
 import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+import wikipedia
+import requests
+
 
 app = Flask(__name__)
 
-API_KEY = "816ef82169eafd7d91e40b372684f15a"   # weather api key
+WEATHER_API_KEY = "816ef82169eafd7d91e40b372684f15a"   # weather api key
+NEWS_API_KEY = 'ab2d72cd5956487f9ac809ce71488e1b'      #news api key
 BASE_URL = 'http://api.openweathermap.org/data/2.5/weather?'
 city = "Mumbai"
 reminders = []  # List to store reminders
 SCOPES = ['https://www.googleapis.com/auth/calendar.readonly']
 
+# Set a wikipedia custom user-agent and lang 
+wikipedia.set_lang("en")
+wikipedia.set_user_agent("VoiceAssistant/1.0 (pratikmicrosoft1226@gmail.com)")
+
 def get_weather(city):
-    url = f"{BASE_URL}q={city}&appid={API_KEY}&units=metric"
+    url = f"{BASE_URL}q={city}&appid={WEATHER_API_KEY}&units=metric"
     response = requests.get(url)
     if response.status_code == 200:
         data = response.json()
@@ -114,16 +122,40 @@ def handle_command(command, service):
             return "Failed to set reminder."
         
     if 'send email' in command:
+        # No exception handeling needed bcz send_email handles itself
         # Prompt for recipient email, subject, and message
         speak("Please tell me the recipient's email address.")
         recipient_email = listen() 
+        
+        corrections = {
+            "zero": "0", "one": "1", "two": "2", "three": "3", "four": "4", "five": "5", "six": "6", 
+            "seven": "7", "eight": "8", "nine": "9",
+            "dot": ".", "at": "@", "com": "com"
+        }
+    
+        for word, replacement in corrections.items():
+            recipient_email = recipient_email.replace(word, replacement).lower()
+            recipient_email = recipient_email.replace(" ", "")
+        
         speak("What is the subject of the email?")
         subject = listen()
         speak("What is the message?")
         body = listen()
-
         # Send the email
         send_email(recipient_email, subject, body)
+    
+    if "search wikipedia for" in command:
+        topic = command.replace("search wikipedia for", "").strip()
+        response = search_wikipedia(topic)
+        speak(response)
+        return response
+
+    if "search news for" in command:
+        news_query = command.replace("search news for", "").strip()
+        result = get_top_news(news_query)
+        speak(result)
+        return result
+
         
     response_texts = {
         'hello': "Hey there! How can I help you today?",
@@ -217,11 +249,71 @@ def send_email(recipient_email, subject, body):
 
         print("Email sent successfully!")
         speak("Email sent successfully!")
+        return "Email sent successfully!"
+
 
     except Exception as e:
         print(f"Failed to send email: {e}")
         speak("Failed to send the email. Please check the details and try again.")
+        return "Failed to send the email. Please check the details and try again."
 
 #================================================================================================================================
 #================================================================================================================================
 
+# Function to search Wikipedia
+def search_wikipedia(query):
+    try:
+        # Get the summary of the page
+        summary = wikipedia.summary(query, sentences=2)
+        return summary
+    # except wikipedia.exceptions.DisambiguationError as e:
+    #     return f"Multiple results found: {e.options}"
+    # except wikipedia.exceptions.HTTPError as e:
+    #     return f"HTTP error occurred: {e}"
+    # except wikipedia.exceptions.ConnectionError as e:
+    #     return f"Connection error occurred: {e}"
+    # except wikipedia.exceptions.RedirectError as e:
+    #     return f"Redirect error occurred: {e}"
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return "Something went wrong while searching for wikipedia"
+    
+#================================================================================================================================
+#================================================================================================================================
+
+def fetch_news(query):
+    try:
+        # NewsAPI endpoint for search
+        url = f'https://newsapi.org/v2/everything?q={query}&apiKey={NEWS_API_KEY}'
+        
+        # Make a GET request to fetch the news
+        response = requests.get(url)
+        data = response.json()
+
+        # Check if the response contains articles
+        if data.get('status') == 'ok' and 'articles' in data:
+            articles = data['articles']
+            return articles
+        else:
+            return "No news found for your query."
+    except Exception as e:
+        return f"An error occurred: {e}"
+
+def get_top_news(query, num_results=3):
+    news = fetch_news(query)
+    
+    if isinstance(news, str):  # Error or no results
+        return news
+    
+    # Extract the top 'num_results' from the news articles
+    top_news = []
+    for article in news[:num_results]:
+        title = article['title']
+        description = article['description']
+        url = article['url']
+        top_news.append(f"Title: {title}\nDescription: {description}\n")
+    
+    return "\n\n".join(top_news)
+
+#================================================================================================================================
+#================================================================================================================================

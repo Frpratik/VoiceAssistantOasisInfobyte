@@ -13,3 +13,6 @@ turn on two factor authentication
 after that search app passwords and create pass word
 copy that and paste in your code > password = "xyzwhatever the password is"
 ===================================================================================================================
+news api key 
+ab2d72cd5956487f9ac809ce71488e1b
+===================================================================================================================
