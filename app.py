@@ -18,6 +18,7 @@ def voice_command():
         return jsonify({"command": command, "response": response, "exit": True}) 
     return jsonify({"command": command, "response": response})
 
+
 if __name__ == '__main__':
     service = authenticate_google_calendar()
     # get_today_events(service)
@@ -33,4 +34,9 @@ if __name__ == '__main__':
     
     # query = "Python programming"
     # print(get_top_news(query))
+    
+    #for spotify
+    # play_music()
+    
+    # play_youtube_music("Sai ram")
     app.run(threaded=True,debug=True)

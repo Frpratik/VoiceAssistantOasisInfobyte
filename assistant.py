@@ -13,6 +13,9 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import wikipedia
 import requests
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+
 
 
 app = Flask(__name__)
@@ -96,6 +99,27 @@ reminder_thread.start()
 def handle_command(command, service):
     if "calendar" in command:
         return tell_today_events(service)
+    
+    if "play" in command:
+            play_music()
+            
+    if "pause" in command:
+        pause_music()
+
+    if "skip" in command:
+        skip_track()
+        
+    elif "volume up" in command:
+        current_volume = sp.current_playback()['device']['volume_percent']
+        new_volume = min(current_volume + 10, 100)
+        sp.volume(new_volume)
+        speak(f"Volume set to {new_volume}%")
+
+    elif "volume down" in command:
+        current_volume = sp.current_playback()['device']['volume_percent']
+        new_volume = max(current_volume - 10, 0)
+        sp.volume(new_volume)
+        speak(f"Volume set to {new_volume}%")
 
     """Check reminders and notify the user if any are due."""
     """Set a reminder to drink water in 5 minutes.>>>>pattern for setting reminders""" 
@@ -317,3 +341,135 @@ def get_top_news(query, num_results=3):
 
 #================================================================================================================================
 #================================================================================================================================
+# Define the necessary scopes
+sp = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id="8645f414b1bd47bc9c4cc15ca782e3f4",
+                                               client_secret="7ea1f214793b4681a28232859959b618",
+                                               redirect_uri="http://127.0.0.1:5000",
+                                               scope=["user-library-read", "user-read-playback-state", "user-modify-playback-state"]))
+
+# Function to play music
+def play_music():
+    sp.start_playback()
+    speak("Playing music.")
+
+# Function to pause music
+def pause_music():
+    sp.pause_playback()
+    speak("Music paused.")
+
+# Function to skip to next track
+def skip_track():
+    sp.skip_to_next()
+    speak("Skipping to next track.")
+
+#================================================================================================================================
+#================================================================================================================================
+
+# import pywhatkit as kit
+
+# def play_youtube_music(song_name):
+#     kit.playonyt(song_name)  # This will open the default browser and play the first YouTube result
+    
+#================================================================================================================================
+#================================================================================================================================
+# 🚀 Introducing My Personal Voice Assistant Project 🚀
+
+# I’m excited to share my Personal Voice Assistant project, developed using Python, Flask, and integrated with several APIs to simplify daily tasks through voice commands.
+
+
+
+# ⏺️ Project Overview:
+
+# This voice assistant includes features like Google Calendar integration, Wikipedia search, weather updates, and the ability to send emails. It also supports Spotify for music control, although full functionality is limited without a Spotify Premium account.
+
+
+
+# ⏺️Key Features:
+
+# ✔️ Google Calendar Integration (via Firebase) 📅
+
+# Voice Command: “What’s on my calendar today?”
+
+# The assistant syncs with Google Calendar through Firebase to manage and retrieve events. It provides live updates of your schedule.
+
+# ✔️ Voice-Activated Email ✉️
+
+# Voice Command: “Send an email to [contact name]”
+
+# Dictate emails to the assistant, which converts speech into text and sends them to the intended recipient—perfect for on-the-go communications.
+
+# ✔️ Weather Updates 🌦️
+
+# Voice Command: “What’s the weather today?”
+
+# Get real-time weather information by asking the assistant for today’s forecast.
+
+# ✔️ News Fetching 📰
+
+# Voice Command: “Search news for [topic]”
+
+# Stay updated with the latest news. The assistant will read the latest headlines on your chosen topic.
+
+# ✔️ Spotify Integration (Limited) 🎶
+
+# Voice Commands: “Play”, “Pause”, “Next”, "Previous",“Volume up/down”
+
+# Play, pause, skip, and control the volume via voice commands. However, full functionality is unavailable due to the lack of a Spotify Premium account. With a premium account, music streaming will be uninterrupted.
+
+# ✔️ Wikipedia Search 📚
+
+# Voice Command: “Search Wikipedia for [topic]”
+
+# Ask the assistant to search Wikipedia for any topic, and it will read out relevant articles for you.
+
+# ✔️ Setting Reminders ⏰
+
+# Voice Command: “Set a reminder for [time] to [task]”
+
+# The assistant allows users to set reminders through voice commands. It uses threading to handle multiple reminders at once, ensuring you get notified at the right time without any delays.
+
+
+
+# ⏺️Technologies Used:
+
+# ▶️ Python: Backend scripting and voice command processing
+
+# ▶️Flask: Web server and API handling
+
+# ▶️Google Calendar API: Event management and reminders
+
+# ▶️OpenWeatherMap API: Weather information
+
+# ▶️News API: Latest news headlines
+
+# ▶️Wikipedia API: Wikipedia content retrieval
+
+# ▶️SpeechRecognition: Converts voice to text
+
+# ▶️Spotify API: Music control (limited with free account)
+
+# ▶️Threading: Handles multiple reminders simultaneously
+
+
+
+# ⏺️Future Enhancements:
+
+# ⬆️ Full Spotify Premium integration for uninterrupted music.
+
+# ⬆️Smart home and task management features.
+
+# ⬆️Improved UI/UX for a better user experience.
+
+
+
+# 💡 GitHub Repository:
+
+# https://github.com/Frpratik/VoiceAssistantOasisInfobyte
+
+
+
+# A special thanks to Oasis Infobyte for the valuable feedback throughout development!
+
+
+
+# #VoiceAssistant #Python #Flask #Firebase #GoogleCalendar #SpotifyIntegration #WikipediaSearch #APIIntegration
